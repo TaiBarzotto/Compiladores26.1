@@ -1,3 +1,5 @@
-se + a
-entao
-senao
+se
+sai
+foi
+<S> ::= a<A> | e<A> | i<A> | o<A> | u<A>
+<A> ::= a<A> | e<A> | i<A> | o<A> | u<A> | *
