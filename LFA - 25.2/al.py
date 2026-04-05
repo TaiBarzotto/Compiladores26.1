@@ -20,9 +20,8 @@ with open('entrada.txt', 'r') as file:
                     ESTADO_ATUAL_AL = aux
                     TOKEN+=char
             else:
+                FITA.append(ESTADO_ATUAL_AL)
                 if ESTADO_ATUAL_AL in estados_finais:
-                    ESTADO_ATUAL_AL = '0'
-                    FITA.append(TOKEN)
                     ts_token = {
                         'token': TOKEN,
                         'linha': num_linha,
@@ -31,7 +30,6 @@ with open('entrada.txt', 'r') as file:
                     TS.append(ts_token)
                     TOKEN = ''
                 elif ESTADO_ATUAL_AL == '~':
-                    ESTADO_ATUAL_AL = '0'
                     ts_token = {
                         'token': TOKEN,
                         'linha': num_linha,
@@ -40,8 +38,9 @@ with open('entrada.txt', 'r') as file:
                     TS.append(ts_token)
                     TOKEN = ''
                     print("TOKEN NÃO RECONHECIDO")
-print("Tabela de Simbolos", TS)
-print("FITA", FITA)        
+                ESTADO_ATUAL_AL = '0'
+print("Tabela de Simbolos: ", TS)
+print("Fita de Estados: ", FITA)        
                     
                     
                     
