@@ -30,23 +30,14 @@ def imprimir_afd(simbolos: list, afd: dict, finais: list) -> None:
             print(f"{celula}\t\t" + "\t\t".join(f"[{cell}]" if ',' in cell else cell for cell in values))
             print("-----------------"*len(simbolos))
         
-def imprimir_ts(ts):
-    print("============================= FITA =============================")
-    print(ts['fita'])
-    print()
-    print("======================== Token - Linha ========================")
-    for linha, tokens in enumerate(ts['saida']):
-        print(f"Linha {linha+1}: {", ".join(tokens)}")
-        
+
 # Processar uma palavra e inseri-la na AFND
-def processar_palavra(line, dict_simbolos, afnd, estados_finais, tokens_estados, ts, num_linha):
+def processar_palavra(line, dict_simbolos, afnd, estados_finais, tokens_estados):
     global PROX_ESTADO_LIVRE
     eh_simbolo_inicial = True
-    palavra = ''
+
     for char in line:
-        ts['fita'].append(char)
         if char != ' ' and char !="\n":
-            palavra+=char
             if eh_simbolo_inicial:
                 estado_atual = ESTADO_INICIAL
             else:
@@ -62,22 +53,18 @@ def processar_palavra(line, dict_simbolos, afnd, estados_finais, tokens_estados,
 
             eh_simbolo_inicial = False
 
-        elif char == '\n' or char==' ':
+        elif char == '\n':
             estados_finais.add(PROX_ESTADO_LIVRE)
             nova_linha_estado_final = [''] * len(dict_simbolos)
             tokens_estados[PROX_ESTADO_LIVRE] = line.replace("\n","")
             afnd.append(nova_linha_estado_final)
-            ts['saida'][num_linha].append(palavra)
-            if char == ' ':
-                palavra = ''
 
     if not line.endswith('\n'):
         tokens_estados[PROX_ESTADO_LIVRE] = line
         estados_finais.add(PROX_ESTADO_LIVRE)
         nova_linha_estado_final = [''] * len(dict_simbolos) 
         afnd.append(nova_linha_estado_final)
-        ts['saida'][num_linha].append(palavra)
-        
+
 # Processar uma regra de uma GR e inseri-la na AFND
 def processar_gramatica(line, dict_estados, dict_simbolos, afnd, estados_finais):
     global PROX_ESTADO_LIVRE
@@ -139,18 +126,17 @@ def determinizar_afnd(afd,afnd, estados):
             determinizar_afnd(afd, afnd,novos_estados)
 
 # Gerar a AFND com base nas palavras e regras do arquivo tokens.txt
-def gerar_afnd(simbolos, count_simbolos, dict_estados, dict_simbolos, estados_finais,ts):
+def gerar_afnd(simbolos, count_simbolos, dict_estados, dict_simbolos, estados_finais):
     tokens_estado = {}
     afnd = [["" for _ in range(len(simbolos))] for _ in range(count_simbolos)]
 
     # Processamento de arquivo
     with open("tokens.txt", "r") as tokens:
-        for num_line, line in enumerate(tokens):
-            ts['saida'].append([])
+        for line in tokens:
             if "::" in line:
                 processar_gramatica(line, dict_estados, dict_simbolos, afnd, estados_finais)
             else:
-                processar_palavra(line, dict_simbolos, afnd, estados_finais, tokens_estado, ts, num_line)
+                processar_palavra(line, dict_simbolos, afnd, estados_finais, tokens_estado)
 
     imprimir_afnd(simbolos, afnd, estados_finais)
     print(f"Final dos tokens: {tokens_estado}")
@@ -201,11 +187,6 @@ def main():
         print("Erro ao abrir arquivo de tokens")
         return
     
-    ts={
-        'fita':[],
-        # saida vai ser uma matriz cada linha-1 tem suas palavras
-        'saida': []
-    }
     # Coleta de símbolos
     with open("tokens.txt","r") as tokens:
         simbolos = set()
@@ -228,7 +209,7 @@ def main():
 
     estados_finais = set()
     
-    afnd = gerar_afnd(simbolos, count_simbolos, dict_estados, dict_simbolos, estados_finais,ts)
+    afnd = gerar_afnd(simbolos, count_simbolos, dict_estados, dict_simbolos, estados_finais)
 
     # Determinização
     afd = {'0': [cell for cell in afnd[0]]}
@@ -254,6 +235,5 @@ def main():
        for i, cell in enumerate(values):
             values[i] = cell if cell else "~" 
     imprimir_afd(simbolos, dict(sorted(afd.items())), novos_estados_finais)
-    imprimir_ts(ts)
 if __name__ == "__main__":
     main()
